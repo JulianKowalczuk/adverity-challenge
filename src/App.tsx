@@ -1,26 +1,65 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react'
+import { Container, Grid, Header, Message } from 'semantic-ui-react'
 
-const App: React.FC = () => {
+import { CardFluidContainer, JsonFromCsvProvider } from 'components'
+import { AppUsageInfo, FiltersPanel, Chart, FiltersInfo } from 'modules'
+import { Filters } from 'types'
+import { initialFiltersState } from 'values'
+
+const App = () => {
+  const [filters, setFilters] = useState<Filters>(initialFiltersState)
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <Container fluid className="content">
+      <Header as="h1">Adverity Advertising Data ETL-V Challenge</Header>
+
+      <Grid>
+        <Grid.Row>
+          <Grid.Column width={16}>
+            <CardFluidContainer>
+              <AppUsageInfo />
+            </CardFluidContainer>
+          </Grid.Column>
+        </Grid.Row>
+
+        <JsonFromCsvProvider url={process.env.REACT_APP_CSV_URL as string}>
+          {({ error, data }) => {
+            if (error) {
+              return (
+                <Grid.Row>
+                  <Grid.Column width={16}>
+                    <Message negative>
+                      <Message.Header>Error</Message.Header>
+
+                      <p>{error}</p>
+                    </Message>
+                  </Grid.Column>
+                </Grid.Row>
+              )
+            }
+
+            return (
+              <Grid.Row>
+                <Grid.Column width={4}>
+                  <CardFluidContainer>
+                    <FiltersPanel data={data} onChange={setFilters} />
+                  </CardFluidContainer>
+                </Grid.Column>
+
+                <Grid.Column width={12}>
+                  <CardFluidContainer>
+                    <FiltersInfo filters={filters} />
+
+                    <Chart data={data} filters={filters} />
+                  </CardFluidContainer>
+                </Grid.Column>
+              </Grid.Row>
+            )
+          }}
+        </JsonFromCsvProvider>
+      </Grid>
+    </Container>
+  )
 }
 
-export default App;
+export default App
